@@ -9,9 +9,7 @@ const URI = 'mongodb://localhost:27017/testcode'
 
 
 
-
-
-app.get('/users', async(req, res)=>{
+const handleReq = async(req, res, next)=>{
     const {id, phoneNumber}= req.query;
         const query = {}
         if(id){
@@ -20,9 +18,16 @@ app.get('/users', async(req, res)=>{
         if (phoneNumber) {
             query.phoneNumber = phoneNumber;
         }
-        // console.log('query', query);
+        req.query1 = query
+
+        next();
+
+}
+
+app.get('/users', handleReq, async(req, res)=>{
+    console.log('req.query1', req.query1);
         try {
-            const user = await User.find(query);
+            const user = await User.find(req.query1);
             if (!user) {
                 const nouser = await User.find();
                 res.status(200).json(nouser)
@@ -52,22 +57,15 @@ app.post('/users',async(req, res)=>{
     }
 })
 
-app.patch('/users', async(req, res)=>{
-    const {id, phoneNumber}= req.query;
-    const query = {}
-        if(id){
-            query._id = new ObjectId(id)
-        }
-        if (phoneNumber) {
-            query.phoneNumber = phoneNumber;
-        }
+app.patch('/users', handleReq, async(req, res)=>{
+    
         // console.log('query', query)
-        const newNumber = 123456789;
+        const newNumber = 1234567890;
         const newUpdate = {
             phoneNumber: newNumber
         }
         try {
-            const user = await User.updateMany(query, {$set: newUpdate})
+            const user = await User.updateMany(req.query1, {$set: newUpdate})
             if (!user) {
                 res.send('Not Found')
             }
@@ -83,18 +81,11 @@ app.patch('/users', async(req, res)=>{
 })
 
 
-app.delete('/users', async(req, res)=>{
-    const {id, phoneNumber}= req.query;
-    const query = {}
-        if(id){
-            query._id = new ObjectId(id)
-        }
-        if (phoneNumber) {
-            query.phoneNumber = phoneNumber;
-        }
+app.delete('/users', handleReq,async(req, res)=>{
+   
         // console.log('query', query);
         try {
-            const user = await User.deleteMany(query)
+            const user = await User.deleteMany(req.query1)
             res.json({message: `Users deleted`})
         } catch (error) {
             console.log(error.message);
